@@ -14,6 +14,7 @@
 async function generateHtmlReport(results, options = {}) {
   const { query = 'design', outputPath } = options;
   // TODO: 实现 HTML 生成逻辑
+  return outputPath || `/tmp/design-search-${query}-${Date.now()}.html`;
 }
 
 module.exports = { generateHtmlReport };
