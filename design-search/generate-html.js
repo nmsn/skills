@@ -124,7 +124,13 @@ function fetchImageAsDataUri(imageUrl, redirectCount = 0) {
         return;
       }
 
-      const contentType = res.headers['content-type'] || 'image/jpeg';
+      const contentType = res.headers['content-type'] || '';
+
+      // Validate content-type is actually an image
+      if (!contentType || !contentType.startsWith('image/')) {
+        resolve(null);
+        return;
+      }
 
       res.on('data', (chunk) => {
         size += chunk.length;
@@ -147,10 +153,13 @@ function fetchImageAsDataUri(imageUrl, redirectCount = 0) {
       });
     });
 
-    req.on('error', () => resolve(null));
+    let resolved = false;
+    const resolveOnce = (val) => { if (!resolved) { resolved = true; resolve(val); } };
+
+    req.on('error', () => resolveOnce(null));
     req.setTimeout(10000, () => {
       req.destroy();
-      resolve(null);
+      resolveOnce(null);
     });
   });
 }
