@@ -9,6 +9,8 @@ description: Use when user asks for design inspiration, references, or inspirati
 
 使用 Playwright MCP 从 Dribbble 和 Pinterest 抓取设计灵感。与返回搜索链接不同，本技能提取实际设计内容（标题、作者、描述、链接）并结构化展示。
 
+**可选：后台运行** — 配置 Playwright MCP 为 headless 模式可让浏览器操作在后台静默执行，用户无感知。
+
 ## When to Use
 
 - 用户说 "搜索 xxx 设计"
@@ -33,6 +35,32 @@ description: Use when user asks for design inspiration, references, or inspirati
 - `browser_navigate` → 导航到搜索页
 - `browser_snapshot` → 获取页面结构
 - `browser_press_key("End")` → 触发 Pinterest 懒加载
+
+## Headless Mode（可选）
+
+让浏览器操作在后台静默执行，用户无感知。
+
+**启动 headless 模式：**
+
+```bash
+# CLI 启动
+npx @playwright/mcp@latest --headless
+
+# Docker 部署
+docker run -d -i --rm --init --pull=always \
+  --entrypoint node --name playwright \
+  -p 8931:8931 mcr.microsoft.com/playwright/mcp \
+  cli.js --headless --browser chromium --no-sandbox
+
+# 或使用配置文件 config.json
+{
+  "browser": {
+    "launchOptions": { "headless": true }
+  }
+}
+```
+
+配置后重启 Claude Code，MCP 会自动使用 headless 模式。
 
 ## Process
 
