@@ -192,9 +192,34 @@ async function generateHtmlReport(results, options = {}) {
   const html = buildHtmlTemplate({ query, dribbbleItems, pinterestItems });
 
   const fs = require('fs');
+  const path = require('path');
   const timestamp = Date.now();
-  const defaultPath = `/tmp/design-search-${query.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${timestamp}.html`;
-  const filePath = outputPath || defaultPath;
+  const safeQuery = query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'design';
+  const filename = `design-search-${safeQuery}-${timestamp}.html`;
+
+  // Determine output directory: outputPath takes precedence, otherwise use current working directory
+  let defaultDir = process.cwd();
+  let defaultPath;
+
+  if (outputPath) {
+    // If outputPath is an absolute path, use it directly
+    // If it's a relative path, resolve from cwd
+    defaultPath = path.isAbsolute(outputPath) ? outputPath : path.resolve(defaultDir, outputPath);
+  } else {
+    // Use cwd/.design-search-results/ directory
+    const resultsDir = path.join(defaultDir, '.design-search-results');
+    try {
+      if (!fs.existsSync(resultsDir)) {
+        fs.mkdirSync(resultsDir, { recursive: true });
+      }
+      defaultPath = path.join(resultsDir, filename);
+    } catch {
+      // Fallback to tmp if directory creation fails
+      defaultPath = `/tmp/${filename}`;
+    }
+  }
+
+  const filePath = defaultPath;
 
   try {
     fs.writeFileSync(filePath, html, 'utf8');
