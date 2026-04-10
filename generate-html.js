@@ -3,6 +3,91 @@
  * 将 Dribbble/Pinterest 抓取结果转换为自包含 HTML 卡片页面
  */
 
+function buildHtmlTemplate(data) {
+  const { query, dribbbleItems = [], pinterestItems = [] } = data;
+
+  const dribbbleCards = dribbbleItems.map(item => `
+    <a href="${escapeHtml(item.url)}" class="card" target="_blank" rel="noopener">
+      <div class="card-image">
+        <img src="${item.imageDataUri || ''}" alt="${escapeHtml(item.title)}"
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 60%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%2260%22/><text x=%2250%22 y=%2235%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>Dribbble</text></svg>'">
+      </div>
+      <div class="card-body">
+        <h3 class="card-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h3>
+        <div class="card-meta">
+          <span class="source-badge dribbble">Dribbble</span>
+          ${item.likes ? `<span class="likes">♥ ${item.likes}</span>` : ''}
+        </div>
+      </div>
+    </a>
+  `).join('');
+
+  const pinterestCards = pinterestItems.map(item => `
+    <a href="${escapeHtml(item.url)}" class="card" target="_blank" rel="noopener">
+      <div class="card-image">
+        <img src="${item.imageDataUri || ''}" alt="${escapeHtml(item.description || 'Pinterest')}"
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 60%22><rect fill=%22%23f0f0f0%22 width=%22100%22 height=%2260%22/><text x=%2250%22 y=%2235%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>Pinterest</text></svg>'">
+      </div>
+      <div class="card-body">
+        <p class="card-description" title="${escapeHtml(item.description || '')}">${escapeHtml(item.description || '')}</p>
+        <span class="source-badge pinterest">Pinterest</span>
+      </div>
+    </a>
+  `).join('');
+
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设计灵感 - ${escapeHtml(query)}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fafafa; color: #333; }
+    header { background: #fff; border-bottom: 1px solid #eee; padding: 24px; text-align: center; }
+    header h1 { font-size: 1.5rem; font-weight: 600; }
+    header .subtitle { color: #666; margin-top: 8px; font-size: 0.9rem; }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    section { margin-bottom: 48px; }
+    section h2 { font-size: 1.25rem; margin-bottom: 16px; color: #222; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card { display: block; background: #fff; border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .card-image { aspect-ratio: 4/3; background: #f0f0f0; overflow: hidden; }
+    .card-image img { width: 100%; height: 100%; object-fit: cover; }
+    .card-body { padding: 16px; }
+    .card-title { font-size: 0.95rem; font-weight: 500; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-description { font-size: 0.85rem; color: #666; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; }
+    .source-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .source-badge.dribbble { background: #ea4c89; color: #fff; }
+    .source-badge.pinterest { background: #bd081c; color: #fff; }
+    .likes { color: #666; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>设计灵感 - ${escapeHtml(query)}</h1>
+    <div class="subtitle">共 ${dribbbleItems.length + pinterestItems.length} 个设计灵感</div>
+  </header>
+  <main>
+    ${dribbbleCards ? `<section><h2>Dribbble 🔍</h2><div class="grid">${dribbbleCards}</div></section>` : ''}
+    ${pinterestCards ? `<section><h2>Pinterest 🔍</h2><div class="grid">${pinterestCards}</div></section>` : ''}
+  </main>
+</body>
+</html>`;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+}
+
 /**
  * 生成 HTML 报告
  * @param {Array} results - 抓取结果数组
@@ -12,9 +97,24 @@
  * @returns {Promise<string>} - 生成的文件路径
  */
 async function generateHtmlReport(results, options = {}) {
-  const { query = 'design', outputPath } = options;
-  // TODO: 实现 HTML 生成逻辑
-  return outputPath || `/tmp/design-search-${query}-${Date.now()}.html`;
+  const { query = 'design', outputPath, fetchImages = false } = options;
+
+  // Group results by platform
+  const dribbbleItems = results.filter(i => i.source === 'dribbble');
+  const pinterestItems = results.filter(i => i.source === 'pinterest');
+
+  // Build HTML
+  const html = buildHtmlTemplate({ query, dribbbleItems, pinterestItems });
+
+  // Write to file
+  const fs = require('fs');
+  const timestamp = Date.now();
+  const defaultPath = `/tmp/design-search-${query.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${timestamp}.html`;
+  const filePath = outputPath || defaultPath;
+
+  fs.writeFileSync(filePath, html, 'utf8');
+
+  return filePath;
 }
 
 module.exports = { generateHtmlReport };
