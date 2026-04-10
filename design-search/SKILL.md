@@ -58,6 +58,33 @@ description: Use when user asks for design inspiration, references, or inspirati
 | ... | ... |
 ```
 
+## HTML 输出（可选）
+
+当需要生成可分享的 HTML 卡片页面时，使用 `--html` 参数。
+
+**用法示例：**
+
+```bash
+# 在 Claude Code 中调用时传入 results 和 query
+generateHtmlReport(results, { query: "mobile app", fetchImages: true })
+# 生成 /tmp/design-search-mobile-app-{timestamp}.html
+
+# 指定输出路径
+generateHtmlReport(results, { query: "dashboard design", outputPath: "~/Desktop/designs.html" })
+```
+
+**图片处理：**
+- 图片自动转换为 data URI（base64）嵌入 HTML
+- 文件完全自包含，可离线查看
+- 图片加载失败显示平台占位符（Dribbble/Pinterest）
+
+**生成的 HTML 特性：**
+- 响应式网格布局（移动端 1 列，桌面 3-4 列）
+- 卡片 hover 效果（阴影提升）
+- 点击图片打开原始设计页面（新标签页）
+- 平台标识（Dribbble/Pinterest）
+- 点赞数显示（Dribbble）
+
 ## Common Mistakes
 
 | 错误 | 修复 |
