@@ -88,6 +88,69 @@ function escapeHtml(str) {
             .replace(/'/g, '&#039;');
 }
 
+const https = require('https');
+const http = require('http');
+
+/**
+ * 将图片 URL 转换为 data URI
+ * @param {string} imageUrl - 图片 URL
+ * @returns {Promise<string|null>} - data URI 或 null（失败时）
+ */
+function fetchImageAsDataUri(imageUrl) {
+  return new Promise((resolve) => {
+    if (!imageUrl) {
+      resolve(null);
+      return;
+    }
+
+    const protocol = imageUrl.startsWith('https') ? https : http;
+    const maxSize = 5 * 1024 * 1024; // 5MB 限制
+    let size = 0;
+    let data = [];
+
+    const req = protocol.get(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+      // 处理重定向
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        fetchImageAsDataUri(res.headers.location).then(resolve);
+        return;
+      }
+
+      if (res.statusCode !== 200) {
+        resolve(null);
+        return;
+      }
+
+      const contentType = res.headers['content-type'] || 'image/jpeg';
+
+      res.on('data', (chunk) => {
+        size += chunk.length;
+        if (size > maxSize) {
+          req.abort();
+          resolve(null);
+          return;
+        }
+        data.push(chunk);
+      });
+
+      res.on('end', () => {
+        try {
+          const buffer = Buffer.concat(data);
+          const base64 = buffer.toString('base64');
+          resolve(`data:${contentType};base64,${base64}`);
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+
+    req.on('error', () => resolve(null));
+    req.setTimeout(10000, () => {
+      req.destroy();
+      resolve(null);
+    });
+  });
+}
+
 /**
  * 生成 HTML 报告
  * @param {Array} results - 抓取结果数组
@@ -97,11 +160,21 @@ function escapeHtml(str) {
  * @returns {Promise<string>} - 生成的文件路径
  */
 async function generateHtmlReport(results, options = {}) {
-  const { query = 'design', outputPath } = options;
+  const { query = 'design', outputPath, fetchImages = true } = options;
 
   const safeResults = Array.isArray(results) ? results : [];
-  const dribbbleItems = safeResults.filter(i => i.source === 'dribbble');
-  const pinterestItems = safeResults.filter(i => i.source === 'pinterest');
+
+  // Optionally fetch images as data URIs
+  const itemsWithImages = await Promise.all(safeResults.map(async (item) => {
+    if (item.imageDataUri) return item;
+    if (fetchImages && item.imageUrl) {
+      item.imageDataUri = await fetchImageAsDataUri(item.imageUrl);
+    }
+    return item;
+  }));
+
+  const dribbbleItems = itemsWithImages.filter(i => i.source === 'dribbble');
+  const pinterestItems = itemsWithImages.filter(i => i.source === 'pinterest');
 
   const html = buildHtmlTemplate({ query, dribbbleItems, pinterestItems });
 
