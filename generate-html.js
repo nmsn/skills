@@ -96,7 +96,7 @@ const http = require('http');
  * @param {string} imageUrl - 图片 URL
  * @returns {Promise<string|null>} - data URI 或 null（失败时）
  */
-function fetchImageAsDataUri(imageUrl) {
+function fetchImageAsDataUri(imageUrl, redirectCount = 0) {
   return new Promise((resolve) => {
     if (!imageUrl) {
       resolve(null);
@@ -109,9 +109,13 @@ function fetchImageAsDataUri(imageUrl) {
     let data = [];
 
     const req = protocol.get(imageUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
-      // 处理重定向
+      // 处理重定向（最多 10 次）
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        fetchImageAsDataUri(res.headers.location).then(resolve);
+        if (redirectCount >= 10) {
+          resolve(null);
+          return;
+        }
+        fetchImageAsDataUri(res.headers.location, redirectCount + 1).then(resolve);
         return;
       }
 
@@ -125,7 +129,7 @@ function fetchImageAsDataUri(imageUrl) {
       res.on('data', (chunk) => {
         size += chunk.length;
         if (size > maxSize) {
-          req.abort();
+          req.destroy();
           resolve(null);
           return;
         }
@@ -166,11 +170,10 @@ async function generateHtmlReport(results, options = {}) {
 
   // Optionally fetch images as data URIs
   const itemsWithImages = await Promise.all(safeResults.map(async (item) => {
-    if (item.imageDataUri) return item;
-    if (fetchImages && item.imageUrl) {
-      item.imageDataUri = await fetchImageAsDataUri(item.imageUrl);
+    if (!fetchImages || !item.imageUrl || item.imageDataUri) {
+      return { ...item };
     }
-    return item;
+    return { ...item, imageDataUri: await fetchImageAsDataUri(item.imageUrl) };
   }));
 
   const dribbbleItems = itemsWithImages.filter(i => i.source === 'dribbble');
