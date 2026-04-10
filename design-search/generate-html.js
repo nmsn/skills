@@ -166,10 +166,11 @@ function fetchImageAsDataUri(imageUrl, redirectCount = 0) {
 
 /**
  * 生成 HTML 报告
- * @param {Array} results - 抓取结果数组
+ * @param {Array} results - 搜索结果数组，每项需含 source(dribbble/pinterest)、url、imageUrl
  * @param {Object} options - 配置选项
- * @param {string} options.query - 搜索关键词
- * @param {string} options.outputPath - 输出文件路径（可选）
+ * @param {string} options.query - 搜索关键词，用于文件名和页面标题
+ * @param {boolean} options.fetchImages - 是否下载图片嵌入 HTML，默认 true
+ * @param {string} options.outputPath - 输出文件路径（可选），默认 /tmp/design-search-{query}-{timestamp}.html
  * @returns {Promise<string>} - 生成的文件路径
  */
 async function generateHtmlReport(results, options = {}) {

@@ -1,6 +1,6 @@
 ---
 name: design-search
-description: Use when user asks for design inspiration, references, or inspiration materials from Dribbble or Pinterest (e.g. "搜索 xxx 设计", "找 xxx 相关设计", "design inspiration for xxx")
+description: Use when user asks for design inspiration, references, or inspiration materials from Dribbble or Pinterest, or wants to generate an HTML card page of search results
 ---
 
 # Design Search Skill
@@ -36,11 +36,13 @@ description: Use when user asks for design inspiration, references, or inspirati
 
 ## Process
 
-1. **Dribbble**: 导航 → 快照 → 提取卡片（标题/作者/点赞/链接）
-2. **Pinterest**: 导航 → 按 End 键 → 快照 → 提取 Pin（描述/链接）
-3. 格式化输出为表格
+1. **Dribbble**: 导航 → 快照 → 提取卡片（标题/作者/点赞/链接/图片）
+2. **Pinterest**: 导航 → 按 End 键 → 快照 → 提取 Pin（描述/链接/图片）
+3. 输出结果（Markdown 表格 或 HTML 卡片页面）
 
 ## Output Format
+
+### Markdown 表格（默认）
 
 ```
 ## 设计搜索结果
@@ -58,25 +60,41 @@ description: Use when user asks for design inspiration, references, or inspirati
 | ... | ... |
 ```
 
-## HTML 输出（可选）
+### HTML 卡片页面（可选）
 
-当需要生成可分享的 HTML 卡片页面时，使用 `--html` 参数。
+使用 `generateHtmlReport()` 函数生成自包含 HTML 文件：
 
-**用法示例：**
+```javascript
+const { generateHtmlReport } = require('./design-search/generate-html.js');
 
-```bash
-# 在 Claude Code 中调用时传入 results 和 query
-generateHtmlReport(results, { query: "mobile app", fetchImages: true })
-# 生成 /tmp/design-search-mobile-app-{timestamp}.html
+const results = [
+  { source: 'dribbble', title: 'App UI', url: '...', imageUrl: '...', likes: 234 },
+  { source: 'pinterest', description: 'Design', url: '...', imageUrl: '...' }
+];
 
-# 指定输出路径
-generateHtmlReport(results, { query: "dashboard design", outputPath: "~/Desktop/designs.html" })
+// 生成 HTML（图片自动转为 base64）
+const path = await generateHtmlReport(results, { query: 'mobile app' });
+
+// 不下载图片，只生成模板
+const path = await generateHtmlReport(results, { query: 'mobile app', fetchImages: false });
+
+// 指定输出路径
+const path = await generateHtmlReport(results, { query: 'app', outputPath: '~/Desktop/designs.html' });
 ```
+
+**参数说明：**
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `results` | Array | 必填 | 搜索结果数组，每项需含 `source`（dribbble/pinterest）、`url`、`imageUrl` |
+| `options.query` | string | 'design' | 搜索关键词，用于文件名和页面标题 |
+| `options.fetchImages` | boolean | true | 是否下载图片嵌入 HTML |
+| `options.outputPath` | string | 自动生成 | 自定义输出路径 |
 
 **图片处理：**
 - 图片自动转换为 data URI（base64）嵌入 HTML
 - 文件完全自包含，可离线查看
-- 图片加载失败显示平台占位符（Dribbble/Pinterest）
+- 图片加载失败显示平台占位符
 
 **生成的 HTML 特性：**
 - 响应式网格布局（移动端 1 列，桌面 3-4 列）
