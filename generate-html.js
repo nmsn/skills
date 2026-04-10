@@ -97,22 +97,24 @@ function escapeHtml(str) {
  * @returns {Promise<string>} - 生成的文件路径
  */
 async function generateHtmlReport(results, options = {}) {
-  const { query = 'design', outputPath, fetchImages = false } = options;
+  const { query = 'design', outputPath } = options;
 
-  // Group results by platform
-  const dribbbleItems = results.filter(i => i.source === 'dribbble');
-  const pinterestItems = results.filter(i => i.source === 'pinterest');
+  const safeResults = Array.isArray(results) ? results : [];
+  const dribbbleItems = safeResults.filter(i => i.source === 'dribbble');
+  const pinterestItems = safeResults.filter(i => i.source === 'pinterest');
 
-  // Build HTML
   const html = buildHtmlTemplate({ query, dribbbleItems, pinterestItems });
 
-  // Write to file
   const fs = require('fs');
   const timestamp = Date.now();
   const defaultPath = `/tmp/design-search-${query.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${timestamp}.html`;
   const filePath = outputPath || defaultPath;
 
-  fs.writeFileSync(filePath, html, 'utf8');
+  try {
+    fs.writeFileSync(filePath, html, 'utf8');
+  } catch (err) {
+    throw new Error(`Failed to write HTML report: ${err.message}`);
+  }
 
   return filePath;
 }
