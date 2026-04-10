@@ -7,9 +7,12 @@ description: Use when user asks for design inspiration, references, or inspirati
 
 ## Overview
 
-使用 Playwright MCP 从 Dribbble 和 Pinterest 抓取设计灵感。与返回搜索链接不同，本技能提取实际设计内容（标题、作者、描述、链接）并结构化展示。
+使用 Playwright CLI 从 Dribbble 和 Pinterest 抓取设计灵感（完全后台静默执行）。与返回搜索链接不同，本技能提取实际设计内容（标题、作者、描述、链接）并结构化展示。
 
-**可选：后台运行** — 配置 Playwright MCP 为 headless 模式可让浏览器操作在后台静默执行，用户无感知。
+**特点：**
+- 完全后台运行，无浏览器窗口
+- 无需 MCP 配置
+- 支持 HTML 卡片页面生成
 
 ## When to Use
 
@@ -24,118 +27,134 @@ description: Use when user asks for design inspiration, references, or inspirati
 - 目标平台不是 Dribbble 或 Pinterest
 - 需要登录才能访问的内容
 
-## Quick Reference
-
-| 平台 | URL 格式 | 特殊处理 |
-|------|----------|----------|
-| Dribbble | `https://dribbble.com/search/{query}` | 不需要 URL encode |
-| Pinterest | `https://www.pinterest.com/search/pins/?q={url-encoded-query}` | 需要 URL encode |
-
-**Playwright 工具:**
-- `browser_navigate` → 导航到搜索页
-- `browser_snapshot` → 获取页面结构
-- `browser_press_key("End")` → 触发 Pinterest 懒加载
-
-## Headless Mode（可选）
-
-让浏览器操作在后台静默执行，用户无感知。
-
-**启动 headless 模式：**
+## Requirements
 
 ```bash
-# CLI 启动
-npx @playwright/mcp@latest --headless
-
-# Docker 部署
-docker run -d -i --rm --init --pull=always \
-  --entrypoint node --name playwright \
-  -p 8931:8931 mcr.microsoft.com/playwright/mcp \
-  cli.js --headless --browser chromium --no-sandbox
-
-# 或使用配置文件 config.json
-{
-  "browser": {
-    "launchOptions": { "headless": true }
-  }
-}
+npm install playwright
+npx playwright install chromium
 ```
 
-配置后重启 Claude Code，MCP 会自动使用 headless 模式。
+## Usage
 
-## Process
+### 命令行直接运行
 
-1. **Dribbble**: 导航 → 快照 → 提取卡片（标题/作者/点赞/链接/图片）
-2. **Pinterest**: 导航 → 按 End 键 → 快照 → 提取 Pin（描述/链接/图片）
-3. 输出结果（Markdown 表格 或 HTML 卡片页面）
+```bash
+node scrape.js "pomodoro timer"          # 搜索两个平台
+node scrape.js "mobile app" dribbble    # 只搜索 Dribbble
+node scrape.js "dashboard" pinterest     # 只搜索 Pinterest
+```
+
+### 在 Node.js 中调用
+
+```javascript
+const { scrapeDribbble, scrapePinterest } = require('./scrape.js');
+
+// 抓取 Dribbble
+const dribbbleResults = await scrapeDribbble('mobile app');
+
+// 抓取 Pinterest
+const pinterestResults = await scrapePinterest('dashboard design');
+
+// 两个平台都抓
+const results = [];
+results.push(...await scrapeDribbble('app design'));
+results.push(...await scrapePinterest('app design'));
+```
+
+### 生成 HTML 报告
+
+```javascript
+const { scrapeDribbble } = require('./scrape.js');
+const { generateHtmlReport } = require('./generate-html.js');
+
+const results = await scrapeDribbble('pomodoro timer');
+const htmlPath = await generateHtmlReport(results, { query: 'pomodoro timer' });
+console.log('HTML 报告:', htmlPath);
+```
 
 ## Output Format
 
-### Markdown 表格（默认）
+### JSON 输出（默认）
 
+```json
+{
+  "source": "search",
+  "query": "pomodoro timer",
+  "timestamp": 1234567890,
+  "dribbble": [
+    {
+      "title": "Pomodoro Timer App",
+      "author": "John Doe",
+      "likes": "234",
+      "url": "https://dribbble.com/shots/12345678",
+      "imageUrl": "https://cdn.dribbble.com/..."
+    }
+  ],
+  "pinterest": [
+    {
+      "description": "Minimalist workspace design",
+      "url": "https://www.pinterest.com/pin/123",
+      "imageUrl": "https://i.pinimg.com/..."
+    }
+  ]
+}
 ```
-## 设计搜索结果
 
-### Dribbble 🔍
-
-| 标题 | 作者 | 点赞 | 链接 |
-|------|------|------|------|
-| ... | ... | ... | ... |
-
-### Pinterest 🔍
-
-| 描述 | 链接 |
-|------|------|
-| ... | ... |
-```
-
-### HTML 卡片页面（可选）
-
-使用 `generateHtmlReport()` 函数生成自包含 HTML 文件：
+### HTML 卡片页面
 
 ```javascript
-const { generateHtmlReport } = require('./design-search/generate-html.js');
+const { scrapeDribbble, scrapePinterest } = require('./scrape.js');
+const { generateHtmlReport } = require('./generate-html.js');
 
-const results = [
-  { source: 'dribbble', title: 'App UI', url: '...', imageUrl: '...', likes: 234 },
-  { source: 'pinterest', description: 'Design', url: '...', imageUrl: '...' }
-];
+async function searchAndGenerate(query) {
+  const [dribbble, pinterest] = await Promise.all([
+    scrapeDribbble(query).catch(() => []),
+    scrapePinterest(query).catch(() => [])
+  ]);
 
-// 生成 HTML（图片自动转为 base64）
-const path = await generateHtmlReport(results, { query: 'mobile app' });
+  const allResults = [
+    ...dribbble.map(r => ({ ...r, source: 'dribbble' })),
+    ...pinterest.map(r => ({ ...r, source: 'pinterest' }))
+  ];
 
-// 不下载图片，只生成模板
-const path = await generateHtmlReport(results, { query: 'mobile app', fetchImages: false });
+  const htmlPath = await generateHtmlReport(allResults, { query });
+  return htmlPath;
+}
 
-// 指定输出路径
-const path = await generateHtmlReport(results, { query: 'app', outputPath: '~/Desktop/designs.html' });
+// 使用
+const path = await searchAndGenerate('pomodoro timer');
 ```
 
-**参数说明：**
+**HTML 输出参数：**
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `results` | Array | 必填 | 搜索结果数组，每项需含 `source`（dribbble/pinterest）、`url`、`imageUrl` |
-| `options.query` | string | 'design' | 搜索关键词，用于文件名和页面标题 |
+| `results` | Array | 必填 | 搜索结果数组，每项需含 `source`、`url` |
+| `options.query` | string | 'design' | 搜索关键词 |
 | `options.fetchImages` | boolean | true | 是否下载图片嵌入 HTML |
 | `options.outputPath` | string | 自动生成 | 自定义输出路径 |
 
-**图片处理：**
-- 图片自动转换为 data URI（base64）嵌入 HTML
-- 文件完全自包含，可离线查看
-- 图片加载失败显示平台占位符
-
-**生成的 HTML 特性：**
+**HTML 特性：**
 - 响应式网格布局（移动端 1 列，桌面 3-4 列）
-- 卡片 hover 效果（阴影提升）
-- 点击图片打开原始设计页面（新标签页）
-- 平台标识（Dribbble/Pinterest）
-- 点赞数显示（Dribbble）
+- 卡片 hover 效果
+- 点击打开原始设计页面
+- 图片内嵌为 base64，完全自包含
 
 ## Common Mistakes
 
 | 错误 | 修复 |
 |------|------|
-| Pinterest 只返回空弹窗 | 弹窗后通常有内容，继续提取 `<listitem>` 元素 |
-| Dribbble 无内容 | 尝试滚动或检查是否需要登录 |
-| 图片不显示 | accessibility snapshot 只有 alt 文本，用作描述 |
-| 直接返回搜索链接 | 必须抓取实际内容，仅在失败时降级为链接 |
+| `playwright not found` | 运行 `npm install playwright && npx playwright install chromium` |
+| Pinterest 无内容 | 网站可能需要登录，尝试 Dribbble |
+| Dribbble 无内容 | 页面结构可能变化，检查选择器 |
+| 图片不显示 | 图片 URL 可能是懒加载，使用 `fetchImages: true` 抓取 |
+
+## File Structure
+
+```
+design-search/
+├── SKILL.md           # 本文档
+├── scrape.js          # 抓取脚本（Playwright CLI）
+├── generate-html.js   # HTML 报告生成器
+└── README.md
+```
