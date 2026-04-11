@@ -7,11 +7,17 @@ description: Use when user asks for design inspiration, references, or inspirati
 
 ## Overview
 
-使用 Playwright CLI 从 Dribbble 和 Pinterest 抓取设计灵感（完全后台静默执行）。与返回搜索链接不同，本技能提取实际设计内容（标题、作者、描述、链接）并结构化展示。
+从 Dribbble 和 Pinterest 抓取设计灵感，生成自包含 HTML 卡片页面。
+
+**方案 C: Playwright MCP 静默模式 + HTTP 回退**
+1. 优先使用 Playwright MCP（headless 静默执行）
+2. Playwright 不可用时自动回退到纯 HTTP 抓取
+3. 最终生成 HTML 卡片页面
 
 **特点：**
-- 完全后台运行，无浏览器窗口
-- 无需 MCP 配置
+- 后台静默执行（无可见浏览器窗口）
+- 零依赖回退方案（HTTPS 模块，Node.js 内置）
+- 自动降级保障抓取成功率
 - 支持 HTML 卡片页面生成
 
 ## When to Use
@@ -27,21 +33,31 @@ description: Use when user asks for design inspiration, references, or inspirati
 - 目标平台不是 Dribbble 或 Pinterest
 - 需要登录才能访问的内容
 
-## Requirements
+## 依赖说明
 
-```bash
-npm install playwright
-npx playwright install chromium
+### 最小依赖（自动降级）
+```javascript
+// 零额外依赖，仅使用 Node.js 内置模块
+const https = require('https');
+const http = require('http');
 ```
+
+### 完整功能（可选）
+```bash
+npm install playwright    # 可选，增强抓取能力
+npx playwright install chromium  # 可选，165MB
+```
+
+**注意**: 即使不安装 Playwright，HTTP 回退方案仍可正常工作。
 
 ## Usage
 
 ### 命令行直接运行
 
 ```bash
-node scrape.js "pomodoro timer"          # 搜索两个平台
-node scrape.js "mobile app" dribbble    # 只搜索 Dribbble
-node scrape.js "dashboard" pinterest     # 只搜索 Pinterest
+node scrape.js "pomodoro timer"      # 搜索两个平台
+node scrape.js "mobile app" dribbble  # 只搜索 Dribbble
+node scrape.js "dashboard" pinterest # 只搜索 Pinterest
 ```
 
 ### 在 Node.js 中调用
@@ -140,13 +156,47 @@ const path = await searchAndGenerate('pomodoro timer');
 - 点击打开原始设计页面
 - 图片内嵌为 base64，完全自包含
 
+## 抓取策略
+
+```
+┌─────────────────────────────────────┐
+│         开始抓取请求                 │
+└─────────────────┬───────────────────┘
+                  ▼
+    ┌─────────────────────────┐
+    │ Playwright 可用？        │
+    └───────────┬─────────────┘
+        是      │      否
+        ▼       │       ▼
+    使用 headless   使用 HTTP 回退
+    模式抓取        (零依赖)
+        │       │       │
+        ▼       │       ▼
+    ┌─────────────────────┐
+    │ 返回结果？ 成功？     │
+    └───────────┬─────────┘
+        是      │      否
+        ▼       │       ▼
+      完成    回退到 HTTP
+              (零依赖)
+                  │
+                  ▼
+            ┌───────────┐
+            │ 返回结果？ │
+            └─────┬─────┘
+                是
+                ▼
+              完成
+```
+
 ## Common Mistakes
 
 | 错误 | 修复 |
 |------|------|
-| `playwright not found` | 运行 `npm install playwright && npx playwright install chromium` |
-| Pinterest 无内容 | 网站可能需要登录，尝试 Dribbble |
-| Dribbble 无内容 | 页面结构可能变化，检查选择器 |
+| 浏览器窗口可见 | 已配置 `headless: true`，默认静默执行 |
+| `playwright not found` | 可选，不安装也能用 HTTP 回退抓取 |
+| Pinterest 无内容 | Pinterest 强依赖 JS，建议使用 Playwright 或获取链接即可 |
+| Dribbble 无内容 | 页面结构可能变化，检查选择器或使用 HTTP 回退 |
 | 图片不显示 | 图片 URL 可能是懒加载，使用 `fetchImages: true` 抓取 |
 
 ## File Structure
@@ -154,7 +204,7 @@ const path = await searchAndGenerate('pomodoro timer');
 ```
 design-search/
 ├── SKILL.md           # 本文档
-├── scrape.js          # 抓取脚本（Playwright CLI）
+├── scrape.js          # 抓取脚本（MCP 优先 + HTTP 回退）
 ├── generate-html.js   # HTML 报告生成器
 └── README.md
 ```
