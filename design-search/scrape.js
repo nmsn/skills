@@ -183,42 +183,35 @@ async function scrapeWithPlaywright(query, platform) {
       });
       await page.waitForSelector('.shot-thumbnail', { timeout: 10000 }).catch(() => {});
 
+      // 等待内容加载
+      await page.waitForTimeout(2000);
+
       const shots = await page.evaluate(() => {
-        const items = document.querySelectorAll('[data-serialized-shot]');
-        if (items.length === 0) {
-          const altItems = document.querySelectorAll('.shots .shot, [data-qa="shot"]');
-          return Array.from(altItems).map(item => {
-            const titleEl = item.querySelector('[data-testid="shot-title"], h2 a, .title');
-            const authorEl = item.querySelector('[data-testid="shot-owner"], .user-link');
-            const likesEl = item.querySelector('[data-testid="shot-likes"], .likes');
-            const linkEl = item.querySelector('a[href*="/shots/"]');
-            const imgEl = item.querySelector('img');
+        // 查找具体 shot 链接 (包含数字 ID)
+        const links = Array.from(document.querySelectorAll('a[href*="/shots/"]'));
+        const shotLinks = links.filter(l => /\/shots\/\d+/.test(l.href));
 
-            return {
-              title: titleEl?.textContent?.trim() || '',
-              author: authorEl?.textContent?.trim() || '',
-              likes: likesEl?.textContent?.trim() || '0',
-              url: linkEl ? (linkEl.href.startsWith('http') ? linkEl.href : `https://dribbble.com${linkEl.getAttribute('href')}`) : '',
-              imageUrl: imgEl?.src || ''
-            };
-          }).filter(s => s.url);
-        }
+        return shotLinks.slice(0, 20).map(link => {
+          // 找到关联的图片 (在 link 内部或附近的 img)
+          let imgEl = link.querySelector('img');
+          if (!imgEl) {
+            // 图片可能在父元素中
+            const parent = link.parentElement;
+            imgEl = parent?.querySelector('img') || parent?.parentElement?.querySelector('img');
+          }
 
-        return Array.from(items).map(item => {
-          const titleEl = item.querySelector('.shot-title, .shot-title-link');
-          const authorEl = item.querySelector('.username, .display-name');
-          const likesEl = item.querySelector('.likes-count, .shot-like-count');
-          const linkEl = item.querySelector('a[href*="/shots/"]');
-          const imgEl = item.querySelector('img');
+          // 标题从链接文本提取
+          const titleMatch = link.textContent?.match(/View\s+(.+)/);
+          const title = titleMatch ? titleMatch[1].trim() : link.textContent?.trim() || '';
 
           return {
-            title: titleEl?.textContent?.trim() || '',
-            author: authorEl?.textContent?.trim() || '',
-            likes: likesEl?.textContent?.trim() || '0',
-            url: linkEl ? `https://dribbble.com${linkEl.getAttribute('href')}` : '',
+            title,
+            author: '',
+            likes: '0',
+            url: link.href,
             imageUrl: imgEl?.src || ''
           };
-        }).filter(s => s.url);
+        }).filter(s => s.url && s.title);
       });
 
       return { platform: 'dribbble', shots };
