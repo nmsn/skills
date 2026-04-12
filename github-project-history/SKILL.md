@@ -83,4 +83,69 @@ gh api repos/{owner}/{repo}/milestones --paginate --jq '.[] | {title: .title, st
 Run:
 ```bash
 gh api repos/{owner}/{repo}/issues --state all --paginate --jq '.[0:100] | group_by(.state) | map({state: .[0].state, count: length})'
+
+### Step 9: Generate Markdown report
+
+Using all data collected, generate a Markdown report with the following structure:
+
+**Filename:** `{owner}-{repo}-history.md` (e.g., `facebook-react-history.md`)
+
+```markdown
+# {Repo Name} — Project History
+
+> {owner}/{repo} | Generated {date}
+
+## Overview
+- Created: {createdAt}
+- Total commits analyzed: {N} (most recent 300)
+- Latest release: {latest_tag}
+- Top contributors: {N}
+
+## Version Release Rhythm
+Analyze the time gaps between major tags/releases. Identify the pattern:
+- If gaps are consistent: "This project releases major versions approximately every X months."
+- If irregular: Note the shortest and longest gaps.
+
+## Key Milestones
+
+{For each major tag/release, in reverse chronological order, write 2-3 sentences:}
+- **{tag}** ({date}): {narrative describing what changed, inferred from commit messages}
+  - Notable: {notable commit message from the period}
+
+## Top Contributors
+
+| Rank | Contributor | Contributions |
+|------|-------------|---------------|
+| 1 | {login} | {contributions} |
+| ... | ... | ... |
+
+## Community Activity Trends
+{Analyze the issue data. Note periods of high activity, e.g., "Q2 2023 saw a spike in issues, correlating with the v18 release."}
+
+## Summary
+{AI-generated 2-3 sentence narrative tying together the project's journey from creation to present day, highlighting the overall trajectory and key turning points.}
+```
+
+Use the Write tool to save this to `{owner}-{repo}-history.md` in the current working directory.
+
+### Step 10: Display narrative summary in chat
+
+After writing the file, output a brief narrative summary in chat (not the full report):
+
+```
+## {Repo Name} 项目发展历程
+
+{3-4 sentence narrative summary covering: when it started, major evolution phases, current state}
+
+📄 完整报告已保存到 `{owner}-{repo}-history.md`
+```
+
+### Step 11: Error handling
+
+| Error | Message |
+|-------|---------|
+| gh not installed | "gh CLI 未安装，请先安装：https://cli.github.com" |
+| gh not authenticated | "gh 未登录，请运行 `gh auth login`" |
+| repo not found | "找不到仓库 {owner}/{repo}，请确认仓库地址正确且为公开仓库" |
+| rate limited | "GitHub API 速率限制已达，请稍后再试或使用 `gh auth refresh`" |
 ```
