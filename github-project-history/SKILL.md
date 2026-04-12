@@ -104,6 +104,7 @@ gh api repos/{owner}/{repo}/milestones --paginate --jq '.[] | {title: .title, st
 Run:
 ```bash
 gh api repos/{owner}/{repo}/issues --state all --paginate --jq '.[0:100] | group_by(.state) | map({state: .[0].state, count: length})'
+```
 
 ### Step 9: Generate Markdown report
 
