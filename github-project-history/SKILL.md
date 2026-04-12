@@ -21,6 +21,27 @@ Typical requests:
 - 「{repo} 是什么时候创建的」
 - 「{owner}/{repo} 的 release cycle 是多久」
 
+## Natural Language Parsing Rules
+
+Extract `{owner}/{repo}` using these patterns in order:
+
+1. **Direct slash pattern:** matches `{word}/{word}` in input
+   - Regex: `([a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+)`
+   - Example: "分析 facebook/react" → `facebook/react`
+
+2. **URL pattern:** matches GitHub URLs
+   - Regex: `github\.com/([a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+)`
+   - Example: "github.com/facebook/react" → `facebook/react`
+
+3. **Bare repo name:** if only one word given (e.g., "react"), search via:
+   ```bash
+   gh api search/repos --jq '.items[0] | "\(.owner.login)/\(.name)"' "{bare_name}" --match "name:{bare_name}"
+   ```
+   If multiple matches found, ask user to clarify.
+
+If no repo can be identified after all patterns, prompt:
+"请提供要分析的 GitHub 仓库地址，格式为 owner/repo，例如：facebook/react"
+
 ## Workflow
 
 ### Step 1: Parse owner/repo from user input
