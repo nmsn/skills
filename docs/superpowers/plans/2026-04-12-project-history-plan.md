@@ -13,7 +13,7 @@
 ## File Structure
 
 ```
-/Users/nmsn/Studio/skills/project-history/
+/Users/nmsn/Studio/skills/github-project-history/
 └── SKILL.md    ← the entire skill, ~200-300 lines
 ```
 
@@ -21,24 +21,24 @@ Existing skill to reference: `/Users/nmsn/Studio/skills/git-commit-generator/SKI
 
 ---
 
-## Task 1: Create project-history directory and SKILL.md scaffold
+## Task 1: Create github-project-history directory and SKILL.md scaffold
 
 **Files:**
-- Create: `project-history/SKILL.md`
+- Create: `github-project-history/SKILL.md`
 
 - [ ] **Step 1: Create directory and scaffold**
 
 Run:
 ```bash
-mkdir -p /Users/nmsn/Studio/skills/project-history
+mkdir -p /Users/nmsn/Studio/skills/github-project-history
 ```
 
 - [ ] **Step 2: Write SKILL.md scaffold with frontmatter**
 
 ```markdown
 ---
-name: "project-history"
-description: "Analyze a GitHub repository's development history including commits, tags, releases, milestones, and contributors. Use when user wants to understand how a project evolved over time (e.g., '分析 facebook/react 的发展历程', '/project-history facebook/react')."
+name: "github-project-history"
+description: "Analyze a GitHub repository's development history including commits, tags, releases, milestones, and contributors. Use when user wants to understand how a project evolved over time (e.g., '分析 facebook/react 的发展历程', '/github-project-history facebook/react')."
 ---
 
 # Project History Analyzer
@@ -55,7 +55,7 @@ Use this skill when the user wants to analyze the development history of a GitHu
 Typical requests:
 - 「分析一下 {owner}/{repo} 的发展历程」
 - 「看看 {repo} 的项目历史」
-- `/project-history {owner}/{repo}`
+- `/github-project-history {owner}/{repo}`
 - 「{repo} 是什么时候创建的」
 - 「{owner}/{repo} 的 release cycle 是多久」
 
@@ -67,7 +67,7 @@ _... (to be filled in Task 2-4) ..._
 - [ ] **Step 3: Commit**
 
 ```bash
-git add project-history/ && git commit -m "feat: scaffold project-history skill directory"
+git add github-project-history/ && git commit -m "feat: scaffold github-project-history skill directory"
 ```
 
 ---
@@ -75,7 +75,7 @@ git add project-history/ && git commit -m "feat: scaffold project-history skill 
 ## Task 2: Implement repo info and commit parsing
 
 **Files:**
-- Modify: `project-history/SKILL.md`
+- Modify: `github-project-history/SKILL.md`
 
 - [ ] **Step 1: Write the gh data-fetching steps**
 
@@ -85,7 +85,7 @@ After the Workflow section header, add the following steps:
 ### Step 1: Parse owner/repo from user input
 
 Extract `{owner}/{repo}` from:
-- Slash command: `/project-history facebook/react` → `facebook/react`
+- Slash command: `/github-project-history facebook/react` → `facebook/react`
 - Conversation: 「分析一下 facebook/react 的发展历程」→ `facebook/react`
 - If only repo name given (e.g., "react"), try to resolve via `gh api` search or ask user
 
@@ -148,7 +148,7 @@ gh api repos/{owner}/{repo}/issues --state all --paginate --jq '.[0:100] | group
 - [ ] **Step 3: Commit**
 
 ```bash
-git add project-history/SKILL.md && git commit -m "feat: add gh data fetching steps to project-history skill"
+git add github-project-history/SKILL.md && git commit -m "feat: add gh data fetching steps to github-project-history skill"
 ```
 
 ---
@@ -156,7 +156,7 @@ git add project-history/SKILL.md && git commit -m "feat: add gh data fetching st
 ## Task 3: Implement Markdown report generation and narrative output
 
 **Files:**
-- Modify: `project-history/SKILL.md`
+- Modify: `github-project-history/SKILL.md`
 
 - [ ] **Step 1: Write the report generation and output steps**
 
@@ -232,7 +232,7 @@ After writing the file, output a brief narrative summary in chat (not the full r
 - [ ] **Step 2: Commit**
 
 ```bash
-git add project-history/SKILL.md && git commit -m "feat: add report generation and narrative output to project-history"
+git add github-project-history/SKILL.md && git commit -m "feat: add report generation and narrative output to github-project-history"
 ```
 
 ---
@@ -240,7 +240,7 @@ git add project-history/SKILL.md && git commit -m "feat: add report generation a
 ## Task 4: Refine natural language parsing
 
 **Files:**
-- Modify: `project-history/SKILL.md`
+- Modify: `github-project-history/SKILL.md`
 
 - [ ] **Step 1: Write regex-based parsing rules**
 
@@ -272,7 +272,7 @@ If no repo can be identified after all patterns, prompt:
 - [ ] **Step 2: Commit**
 
 ```bash
-git add project-history/SKILL.md && git commit -m "feat: add natural language parsing to project-history"
+git add github-project-history/SKILL.md && git commit -m "feat: add natural language parsing to github-project-history"
 ```
 
 ---
@@ -304,12 +304,12 @@ Fix any placeholders found.
 
 - [ ] **Step 3: Trigger hints review**
 
-Verify trigger hints cover: 「分析一下 facebook/react 的发展历程」and `/project-history facebook/react`
+Verify trigger hints cover: 「分析一下 facebook/react 的发展历程」and `/github-project-history facebook/react`
 
 - [ ] **Step 4: Commit self-review changes**
 
 ```bash
-git add project-history/SKILL.md && git commit -m "fix: address self-review findings in project-history"
+git add github-project-history/SKILL.md && git commit -m "fix: address self-review findings in github-project-history"
 ```
 
 ---
@@ -334,7 +334,7 @@ Check that the final SKILL.md has:
 - [ ] **Step 3: Final commit**
 
 ```bash
-git add -A && git commit -m "feat: complete project-history skill implementation"
+git add -A && git commit -m "feat: complete github-project-history skill implementation"
 ```
 
 ---

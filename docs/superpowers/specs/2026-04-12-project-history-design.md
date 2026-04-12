@@ -1,4 +1,4 @@
-# Project History Analyzer Skill
+# GitHub Project History Analyzer Skill
 
 ## 1. Concept & Vision
 
@@ -6,7 +6,7 @@ A skill that tells the story of an open-source project's evolution through its c
 
 **Trigger:**
 - Conversation: 「分析一下 facebook/react 的发展历程」
-- Slash command: `/project-history facebook/react`
+- Slash command: `/github-project-history facebook/react`
 
 **Output:** A Markdown report written to `{owner}-{repo}-history.md` in the current directory, with a narrative summary displayed in the chat.
 
