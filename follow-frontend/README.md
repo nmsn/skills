@@ -13,9 +13,7 @@
 
 ## 快速开始
 
-```bash
-cd scripts && npm install
-```
+无需安装依赖，直接使用。
 
 ## 使用方式
 
