@@ -1,0 +1,234 @@
+---
+name: fork-issue-workflow
+description: 扫描本地 fork 目录下的仓库，找到上游仓库中新提的、容易解决的 GitHub Issues，并完成修复 → 审核 → PR 提交流程。当用户提到"找 issue 来修"、"fork 贡献"、"扫 issues"、"帮上游修 bug"、"处理 fork 仓库"时使用此技能。
+---
+
+# fork-issue-workflow
+
+> **注意**：skill 中的 `<fork_dir>` 需要替换为你实际的 fork 目录路径，如 `~/fork/` 或 `/Users/xxx/fork/`。
+
+扫描 fork 目录下的仓库，找到上游仓库中新提的、容易解决的 GitHub Issues，并完成从修复到 PR 的完整流程。
+
+## 完整流程概览
+
+1. 扫描 fork 目录，查找有哪些项目
+2. 查找对应项目的原项目，并扫描 issues 列表
+3. 按修改难易程度分析并排序
+4. 在本地 fork 项目中创建分支、修改代码、编写测试用例并运行测试
+5. 测试通过后，列出修改内容交由用户审核
+6. 审核通过后，删除测试内容，对修改提交 PR
+
+---
+
+## Step 1: 扫描 fork 目录查找项目
+
+```bash
+ls -d <fork_dir>/*/
+```
+
+记录每个 fork 仓库的目录名，即为待处理项目列表。
+
+---
+
+## Step 2: 查找上游仓库并扫描 Issues
+
+对每个项目，先找上游仓库，再查 open issues：
+
+```bash
+cd <fork_dir>/<repo>
+git remote -v
+```
+
+用 `git remote get-url origin` 或 `gh api repos/:owner/:repo --jq '.parent.full_name'` 确认上游地址。
+
+然后批量查询上游 issues：
+
+```bash
+gh issue list --repo :owner/:repo --state open --limit 100 --json number,title,createdAt,labels,body
+```
+
+> `--json body` 带上完整内容，便于判断难度。如果结果被截断，用 `--offset N` 分页。
+
+---
+
+## Step 3: 分析难度并排序
+
+关注以下特征：
+
+| 特征 | 含义 |
+|------|------|
+| `bug` label | 明确是 bug，通常有复现步骤 |
+| 问题描述中有 "root cause" / "Suggested fix" | 作者已分析清楚根因和修复方向 |
+| 涉及单文件/单函数改动 | 改动范围小 |
+| 纯前端改动（React/CSS/HTML） | 不需要编译环境 |
+| 文档错误 | 改一行文档即可 |
+| 测试文件缺失 | 补一个文件即可 |
+
+排除：
+- `question` / `enhancement` label（问题类/功能类，不紧急）
+- 涉及多服务/多仓库联动
+- 需要深度架构调整
+- 依赖版本升级风险
+
+整理成 Markdown 表格：
+
+```
+| # | 仓库 | Issue | 类型 | 难度 | 描述 |
+|---|------|-------|------|------|------|
+```
+
+难度等级：
+- ⭐ 极简单：改文档、补测试文件、改一行代码
+- ⭐⭐ 简单：有明确根因和修复方向，单文件改动
+- ⭐⭐⭐ 中等：涉及多文件但逻辑清晰
+- ⭐⭐⭐⭐+：复杂/架构调整
+
+按难度从低到高排序，低难度优先处理。
+
+---
+
+## Step 4: 创建分支、修改代码、编写测试
+
+对每个要修复的 issue，在本地 fork 仓库中操作：
+
+### 4.1 创建分支
+
+```bash
+cd <fork_dir>/<repo>
+git checkout -b fix/<issue-description-slug>
+```
+
+### 4.2 分析代码并修改
+
+阅读相关源码，定位需要改动的文件和函数。
+
+**Rust 项目**：
+```bash
+# 查看现有测试结构
+cargo test --lib -- --list 2>&1 | head -30
+# 在源码文件末尾的 mod tests {} 中添加测试用例
+```
+
+**Node.js/TypeScript 项目**（先确认测试框架）：
+```bash
+# bun 项目
+bun test <path/to/test.file>
+# jest/vitest 项目
+npm test -- --testPathPattern=<pattern>
+```
+
+### 4.3 编写测试用例
+
+在项目已有的测试文件结构中新增测试，或创建临时测试文件。
+
+Rust 示例（在 `src/services/xxx.rs` 末尾的 `mod tests {}` 中添加）：
+```rust
+#[test]
+fn test_xxx_fix() {
+    // 测试修复后的行为
+    assert_eq!(fix_function("input"), "expected");
+}
+```
+
+TypeScript 示例（创建临时测试文件）：
+```typescript
+import { describe, it, expect } from 'bun:test'; // 或 jest / vitest
+// 测试修复后的行为
+```
+
+### 4.4 运行测试验证
+
+```bash
+# Rust
+cargo test --lib <test_name>
+
+# Node.js (bun)
+bun test <path/to/test.file>
+```
+
+测试必须全部通过。如有 lint warning 是文件已有问题，不影响。
+
+### 4.5 确认修复正确
+
+测试通过后，验证修复逻辑确实解决了 issue 中描述的问题。
+
+---
+
+## Step 5: 列出修改内容交由审核
+
+向用户展示：
+- 改了什么文件
+- 具体 diff（`git diff` 或 `git diff --cached`）
+- 测试结果（哪些 case 通过）
+
+示例格式：
+
+```
+【<repo> #<issue>】fix/<issue-description-slug> 分支
+
+diff:
+- <简要描述改动>
+
+测试: <test_name> ✓ (N cases)
+
+等你审核后我执行 push 并创建 PR。
+```
+
+---
+
+## Step 6: 删除测试内容，提交 PR
+
+用户审核通过后：
+
+### 6.1 删除测试代码
+
+将测试用例的修改回退（测试代码不提交）：
+```bash
+git checkout HEAD -- <modified_file>
+```
+
+确认仓库干净：
+```bash
+git status --short
+```
+
+### 6.2 提交修改
+
+确认目标分支（参考 upstream 的默认分支名，用 `gh api repos/:owner/:repo --jq '.default_branch'` 查询）：
+
+```bash
+cd <fork_dir>/<repo>
+git add <modified_files>
+git diff --cached  # 确认改动内容
+git commit -m "fix: 简洁描述 (#issue号)"
+```
+
+### 6.3 Push 并创建 PR
+
+```bash
+git push origin fix/<issue-description-slug>
+```
+
+创建 PR：
+```bash
+gh pr create \
+  --repo :upstream_owner/:repo \
+  --base <default_branch> \
+  --head <your_username>:fix/<issue-description-slug> \
+  --title "fix: 简洁描述 (#issue号)" \
+  --body "Fixes #issue号
+
+修复说明..."
+```
+
+---
+
+## 注意事项
+
+- Issues 按 createdAt 倒序排列，最近的在前
+- 一个仓库可能 Issues 已禁用（`gh issue list` 返回错误），跳过即可
+- 部分仓库没有 parent（本身就是主仓库），用 `git remote -v` 确认
+- 用户偏好：提交 PR 前需要审核（"提交前交给我审查一下"）
+- 单元测试代码在 PR 前必须删除，不随 commit 提交
+- Rust 项目 lint 报 async fn edition 错误是文件已有问题，与修改无关
+- 如果需要 bun 环境但未安装：`npm install -g bun`，用完记得 `npm uninstall -g bun`

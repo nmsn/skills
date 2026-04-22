@@ -1,0 +1,61 @@
+{
+  "x_builders": [
+    { "username": "Rich_Harris",       "name": "Rich Harris",         "bio": "Svelte 作者 @ Vercel" },
+    { "username": "youyuxi",           "name": "Evan You",            "bio": "Vue / Vite 作者" },
+    { "username": "rauchg",            "name": "Guillermo Rauch",     "bio": "Vercel CEO" },
+    { "username": "leeerob",           "name": "Lee Robinson",        "bio": "VP Product @ Vercel, Next.js 核心" },
+    { "username": "tjholowaychuk",     "name": "TJ Holowaychuk",      "bio": "Express / Koa 作者，前端老兵" },
+    { "username": "jarredsumner",      "name": "Jarred Sumner",       "bio": "Bun 作者 / CEO" },
+    { "username": "lucasholmquist",    "name": "Lucas Holmquist",     "bio": "Node.js TSC 成员" },
+    { "username": "mathias",           "name": "Mathias Bynens",      "bio": "V8 / Chrome 团队，JS 引擎专家" },
+    { "username": "devongovett",       "name": "Devon Govett",        "bio": "Parcel 作者 @ Adobe" },
+    { "username": "antfu7",            "name": "Anthony Fu",          "bio": "Vue / Vite / Nuxt 核心，开源全栈" },
+    { "username": "patak_dev",         "name": "Patak",               "bio": "Vite 核心维护者" },
+    { "username": "kdy1dev",           "name": "강동윤 (DongYoon Kang)", "bio": "SWC 作者 @ Vercel" },
+    { "username": "styfle",            "name": "Steven Wittens",      "bio": "Vercel 工程师，Next.js 核心" },
+    { "username": "cramforce",         "name": "Malte Ubl",           "bio": "AMP 作者，前 Google，现 Vercel" },
+    { "username": "mattpocock",        "name": "Matt Pocock",         "bio": "TypeScript 教育者，Total TypeScript" },
+    { "username": "tannerlinsley",     "name": "Tanner Linsley",      "bio": "TanStack Query / Router / Table 作者" },
+    { "username": "aidenybai",         "name": "Aiden Bai",           "bio": "Million.js 作者，React 性能优化" },
+    { "username": "BHolmesDev",        "name": "Ben Holmes",          "bio": "Astro 核心，@withastro" },
+    { "username": "FredKSchott",       "name": "Fred K. Schott",      "bio": "Astro / Snowpack 作者" },
+    { "username": "marvinhagemeiste3", "name": "Marvin Hagemeister",  "bio": "Preact 维护者 @ Deno" },
+    { "username": "rlch",              "name": "Ryan Carniato",       "bio": "SolidJS 作者" },
+    { "username": "lukeed05",          "name": "Luke Edwards",        "bio": "Cloudflare Workers / itty-router 作者" },
+    { "username": "adamwathan",        "name": "Adam Wathan",         "bio": "Tailwind CSS 作者" },
+    { "username": "markdalgleish",     "name": "Mark Dalgleish",      "bio": "CSS Modules / Vanilla Extract 作者" },
+    { "username": "colmtuite",         "name": "Colm Tuite",          "bio": "Radix UI / WorkOS 联合创始人" },
+    { "username": "shadcn",            "name": "shadcn",              "bio": "shadcn/ui 作者" },
+    { "username": "devagrawal09",      "name": "Dev Agrawal",         "bio": "SolidStart 核心，全栈框架" },
+    { "username": "nicolo_ribaudo",    "name": "Nicolo Ribaudo",      "bio": "Babel 核心维护者" },
+    { "username": "shuding_",         "name": "Shu Ding",            "bio": "SWR / Nextra 作者 @ Vercel" },
+    { "username": "youkoseki",         "name": "Yuki Sekiguchi",      "bio": "Hono 作者" }
+  ],
+  "youtube_channels": [
+    {
+      "name": "Syntax",
+      "url": "https://www.youtube.com/@syntaxfm",
+      "description": "Wes Bos & Scott Tolinski 的前端播客，覆盖 JS/CSS/Node 全栈"
+    },
+    {
+      "name": "Fireship",
+      "url": "https://www.youtube.com/@Fireship",
+      "description": "高密度前端技术更新，每周新框架速览"
+    },
+    {
+      "name": "Jack Herrington",
+      "url": "https://www.youtube.com/@jherr",
+      "description": "React / Micro-frontends / 模块联邦深度讲解"
+    },
+    {
+      "name": "ThePrimeagen",
+      "url": "https://www.youtube.com/@ThePrimeagen",
+      "description": "性能 / Bun / Rust + JS 工具链，观点犀利"
+    },
+    {
+      "name": "Matt Pocock",
+      "url": "https://www.youtube.com/@mattpocockuk",
+      "description": "TypeScript 进阶教程，Total TypeScript"
+    }
+  ]
+}
