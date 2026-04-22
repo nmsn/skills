@@ -1,13 +1,9 @@
 {
   "name": "follow-frontend",
   "version": "1.0.0",
-  "description": "前端技术 digest — 追踪框架作者、运行时团队、CSS 工具创造者的最新动态",
+  "description": "前端技术资讯 — 聚合 RSS 源，过滤一周内新闻，输出 Markdown",
   "type": "module",
   "scripts": {
-    "prepare": "node scripts/prepare-digest.js",
-    "deliver": "node scripts/deliver.js"
-  },
-  "dependencies": {
-    "rettiwt-api": "^3.0.0"
+    "fetch": "node fetch-feeds.js"
   }
 }
