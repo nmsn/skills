@@ -208,6 +208,7 @@ bun test <path/to/test.file>
 ## Step 5: 列出修改内容交由审核
 
 向用户展示：
+- 原 issue 链接（便于对照查看）
 - 改了什么文件
 - 具体 diff（`git diff` 或 `git diff --cached`）
 - 测试结果（哪些 case 通过）
@@ -216,6 +217,8 @@ bun test <path/to/test.file>
 
 ```
 【<repo> #<issue>】fix/<issue-description-slug> 分支
+
+原 issue: https://github.com/:owner/:repo/issues/:number
 
 diff:
 - <简要描述改动>
