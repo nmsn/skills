@@ -44,37 +44,83 @@ git remote -v
 然后批量查询上游 issues：
 
 ```bash
-gh issue list --repo :owner/:repo --state open --limit 100 --json number,title,createdAt,labels,body
+gh issue list --repo :owner/:repo --state open --limit 100 --json number,title,createdAt,labels,body,assignees
 ```
 
-> `--json body` 带上完整内容，便于判断难度。如果结果被截断，用 `--offset N` 分页。
+> `--json body,assignees` 带上完整内容和 assignee，便于后续判断。
 
 ---
 
-## Step 3: 分析难度并排序
+## Step 2.5: 获取 Issue 详情（评论 + 事件 + 关联 PR）
 
-关注以下特征：
+**对每个候选 issue，依次获取：**
 
-| 特征 | 含义 |
-|------|------|
-| `bug` label | 明确是 bug，通常有复现步骤 |
-| 问题描述中有 "root cause" / "Suggested fix" | 作者已分析清楚根因和修复方向 |
-| 涉及单文件/单函数改动 | 改动范围小 |
-| 纯前端改动（React/CSS/HTML） | 不需要编译环境 |
-| 文档错误 | 改一行文档即可 |
-| 测试文件缺失 | 补一个文件即可 |
+### 2.5.1 获取评论
 
-排除：
-- `question` / `enhancement` label（问题类/功能类，不紧急）
-- 涉及多服务/多仓库联动
+```bash
+gh api repos/:owner/:repo/issues/:number/comments --jq '.[] | {author: .user.login, body: .body, createdAt: .createdAt}'
+```
+
+### 2.5.2 获取时间线事件
+
+```bash
+gh api repos/:owner/:repo/issues/:number/timeline --jq '.[] | {type: .event, actor: .actor.login, createdAt: .createdAt, stateReason: .stateReason}'
+```
+
+### 2.5.3 判断是否有人正在修复
+
+检查以下信号（任一存在则跳过）：
+
+| 信号 | 含义 | 跳过条件 |
+|------|------|----------|
+| `assignees` 非空 | 有人负责 | 跳过 |
+| `pull_request` 事件存在 | 有人提了 PR | 跳过 |
+| 评论中有 "I'm working on this" / "I will fix" | 有人认领 | 跳过 |
+| `event: linked` 或 `event: referenced` | 关联了 PR | 跳过 |
+
+```bash
+# 快速检查是否有 open 的 PR
+gh api repos/:owner/:repo/issues/:number --jq '.pull_request'
+# 如果返回非 null，说明已有关联 PR
+```
+
+---
+
+## Step 3: 综合分析难度并排序
+
+基于 issue 本体 + 评论 + 事件综合评判：
+
+### 难度评估维度
+
+| 维度 | 信息来源 | 加分/减分 |
+|------|----------|-----------|
+| 作者已提供根因/修复建议 | issue body | ⬇️ 极简单 |
+| 有测试复现步骤 | issue body | ⬇️ 简单 |
+| 讨论活跃（3+ 评论） | comments | ⬆️ 复杂（可能有隐藏复杂度） |
+| 有 re-open 记录 | timeline | ⬆️ 复杂（之前修过又出问题） |
+| 单文件改动 | 代码分析 | ⬇️ 简单 |
+| 纯前端/文档改动 | 代码分析 | ⬇️ 极简单 |
+| 多服务联动 | 代码分析 | ⬆️ 复杂 |
+| 架构调整 | 代码分析 | ⬆️ 极复杂 |
+
+### 排除条件
+
+**跳过（有人正在修复）：**
+- 有 assignee
+- 已关联 open PR
+- 评论中有 "working on it" / "I'll fix" / "taking this"
+
+**跳过（不适合）：**
+- `question` / `enhancement` label
+- 被 close 过又 re-open（可能有隐藏问题）
+- 涉及多仓库/多服务联动
 - 需要深度架构调整
-- 依赖版本升级风险
 
 整理成 Markdown 表格：
 
 ```
-| # | 仓库 | Issue | 类型 | 难度 | 描述 |
-|---|------|-------|------|------|------|
+| # | 仓库 | Issue | 类型 | 难度 | 状态 | 描述 |
+|---|------|-------|------|------|------|------|
 ```
 
 难度等级：
@@ -82,6 +128,11 @@ gh issue list --repo :owner/:repo --state open --limit 100 --json number,title,c
 - ⭐⭐ 简单：有明确根因和修复方向，单文件改动
 - ⭐⭐⭐ 中等：涉及多文件但逻辑清晰
 - ⭐⭐⭐⭐+：复杂/架构调整
+
+**状态标记：**
+- `🆕 新 issue` - 无人认领，可处理
+- `⏳ 有人认领` - 有 assignee 或 PR，跳过
+- `🔁 re-open` - 之前修过又出问题，谨慎
 
 按难度从低到高排序，低难度优先处理。
 
