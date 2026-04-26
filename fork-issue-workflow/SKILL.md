@@ -43,8 +43,25 @@ git remote -v
 
 然后批量查询上游 issues：
 
+**先检查 issue 总数：**
+
 ```bash
+gh api repos/:owner/:repo --jq '.open_issues_count'
+```
+
+**根据 issue 数量决定查询范围：**
+
+| open issues 数量 | 查询策略 |
+|------------------|---------|
+| ≤ 100 | 全量查询 `--limit 100` |
+| > 100 | 只查最近一周的 `--created>=$(date -v-7d +%Y-%m-%d)` |
+
+```bash
+# 100 以内：全量查询
 gh issue list --repo :owner/:repo --state open --limit 100 --json number,title,createdAt,labels,body,assignees
+
+# 100 以上：限制一周内
+gh issue list --repo :owner/:repo --state open --created>=$(date -v-7d +%Y-%m-%d) --json number,title,createdAt,labels,body,assignees
 ```
 
 > `--json body,assignees` 带上完整内容和 assignee，便于后续判断。
@@ -208,8 +225,9 @@ bun test <path/to/test.file>
 ## Step 5: 列出修改内容交由审核
 
 向用户展示：
-- 原 issue 链接（便于对照查看）
-- 改了什么文件
+- 原 issue 链接和问题描述（便于对照查看）
+- 原 issue 的问题是什么
+- 改了哪些文件，为什么要这么改动
 - 具体 diff（`git diff` 或 `git diff --cached`）
 - 测试结果（哪些 case 通过）
 
@@ -219,6 +237,11 @@ bun test <path/to/test.file>
 【<repo> #<issue>】fix/<issue-description-slug> 分支
 
 原 issue: https://github.com/:owner/:repo/issues/:number
+问题: <一句话描述 issue 描述的问题>
+
+改动说明:
+- <file>: <为什么要这么改动>
+- <file>: <为什么要这么改动>
 
 diff:
 - <简要描述改动>
