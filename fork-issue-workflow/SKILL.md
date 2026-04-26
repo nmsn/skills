@@ -54,14 +54,14 @@ gh api repos/:owner/:repo --jq '.open_issues_count'
 | open issues 数量 | 查询策略 |
 |------------------|---------|
 | ≤ 100 | 全量查询 `--limit 100` |
-| > 100 | 只查最近一周的 `--created>=$(date -v-7d +%Y-%m-%d)` |
+| > 100 | 只查最近一周的 `--search "created:>=YYYY-MM-DD"` |
 
 ```bash
 # 100 以内：全量查询
 gh issue list --repo :owner/:repo --state open --limit 100 --json number,title,createdAt,labels,body,assignees
 
-# 100 以上：限制一周内
-gh issue list --repo :owner/:repo --state open --created>=$(date -v-7d +%Y-%m-%d) --json number,title,createdAt,labels,body,assignees
+# 100 以上：限制一周内（使用搜索语法）
+gh issue list --repo :owner/:repo --state open --search "created:>=$(date -r $(($(date +%s) - 604800)) +%Y-%m-%d)" --json number,title,createdAt,labels,body,assignees
 ```
 
 > `--json body,assignees` 带上完整内容和 assignee，便于后续判断。
@@ -138,6 +138,7 @@ gh api repos/:owner/:repo/issues/:number --jq '.pull_request'
 ```
 | # | 仓库 | Issue | 类型 | 难度 | 状态 | 描述 |
 |---|------|-------|------|------|------|------|
+| [#123](https://github.com/:owner/:repo/issues/123) | :owner/:repo | Title | bug | ⭐⭐ | 🆕 | 描述 |
 ```
 
 难度等级：
