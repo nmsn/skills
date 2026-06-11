@@ -1,6 +1,6 @@
 ---
 name: code-summarizer
-description: 总结代码的执行流程、核心方法、设计巧思和实现难点，生成 markdown 文档。Triggers: 总结代码、分析代码流程、代码解析、代码导读、explain this code flow、how does this work、code summary、代码难点
+description: "总结代码的执行流程、核心方法、设计巧思和实现难点，生成 markdown 文档。Triggers: 总结代码、分析代码流程、代码解析、代码导读、explain this code flow、how does this work、code summary、代码难点"
 ---
 
 # Code Summarizer / 代码总结生成器
