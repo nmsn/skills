@@ -34,14 +34,19 @@ Disallowed contents:
 
 Every `SKILL.md` must start with YAML frontmatter:
 
-```
+```yaml
 ---
 name: <kebab-case-name>
-description: <one-sentence description in CN + EN, ending with "Triggers: ...">
+description: "<one-sentence description in CN + EN, ending with Triggers: ...>"
 ---
 ```
 
-The `description` field is bilingual (Chinese first, then English, slash-separated). Triggers are listed at the end, slash-separated, mixing CN and EN. See `docs/adr/0002-bilingual-skill.md` for the rationale.
+Two non-negotiable rules:
+
+- **`description` must be wrapped in double quotes.** Always. The `skills` CLI silently drops any unquoted description containing `: ` (colon-space) — see `docs/adr/0002-bilingual-skill-descriptions.md` for the bug history. If the value contains inner double quotes, escape them as `\"`.
+- The `description` field is bilingual (Chinese first, then English, slash-separated). Triggers are listed at the end, slash-separated, mixing CN and EN.
+
+`scripts/list-skills.sh` warns about unquoted descriptions as a regression guard.
 
 ## Installation
 
