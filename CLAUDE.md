@@ -45,7 +45,12 @@ The `description` field is bilingual (Chinese first, then English, slash-separat
 
 ## Installation
 
-Users install skills by running `./scripts/link-skills.sh`, which symlinks each promoted skill into `~/.claude/skills/`. The script is idempotent, self-reference-safe, and skips `deprecated/`. Do not add copy-paste install instructions to the README — point users at the script.
+Two install paths, with different audiences:
+
+- **Other users** — `npx skills add nmsn/skills`. The `skills` CLI reads `.claude-plugin/plugin.json` and shows an interactive multi-select picker over the promoted skills. This is the path the README documents first.
+- **Local development** — `./scripts/link-skills.sh`. Symlinks every promoted skill into `~/.claude/skills/` (override with `CLAUDE_SKILLS_DIR=~/.agents/skills` for Codex). Idempotent and self-reference-safe; skips `deprecated/`. This is for someone who has cloned the repo to read or modify it.
+
+Do not duplicate these commands in per-skill `SKILL.md` files — the README's "Installation" section is the single source of truth.
 
 ## Documents
 

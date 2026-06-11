@@ -34,13 +34,21 @@ Creative exploration tools.
 
 ### For other users — install via the standard skills CLI
 
-The repo ships a `.claude-plugin/plugin.json` that the `skills` CLI consumes. To install all promoted skills into Claude Code or Codex:
+The repo ships a `.claude-plugin/plugin.json` that the `skills` CLI reads. Pick which skills you want interactively:
 
 ```bash
 npx skills add nmsn/skills
 ```
 
-This downloads the repo, reads the plugin manifest, and links every promoted skill into the right place. No clone required.
+The CLI shows a multi-select picker over the 9 promoted skills. Toggle the ones you want, then choose which agent to install to (Claude Code, Codex, or both). No clone required.
+
+To try a single skill without installing anything, use `use`:
+
+```bash
+npx skills use nmsn/skills@issue-analyzer
+```
+
+After installing, manage the selection with `npx skills list` and `npx skills remove <name>`.
 
 ### For local development — clone and symlink
 
