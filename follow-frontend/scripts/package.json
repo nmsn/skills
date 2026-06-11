@@ -1,9 +1,0 @@
-{
-  "name": "follow-frontend",
-  "version": "1.0.0",
-  "description": "前端技术资讯 — 聚合 RSS 源，过滤一周内新闻，输出 Markdown",
-  "type": "module",
-  "scripts": {
-    "fetch": "node fetch-feeds.js"
-  }
-}
