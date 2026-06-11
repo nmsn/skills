@@ -1,6 +1,6 @@
 ---
 name: github-daily-digest
-description: Summarize followed GitHub users' daily code activity. Use when the user wants a daily digest of their followed developers' commits, wants to monitor developers they follow, daily standup reports on developer activity, or weekly/monthly developer updates. Triggers on requests like "check my followed users' activity", "who's been coding lately", "what's happening with developers I follow", "daily GitHub digest", "followed users commit summary". NOT for: searching specific repos, checking a single user's profile, GitHub issue/PR management.
+description: "Summarize followed GitHub users' daily code activity. Use when the user wants a daily digest of their followed developers' commits, wants to monitor developers they follow, daily standup reports on developer activity, or weekly/monthly developer updates. Triggers on requests like \"check my followed users' activity\", \"who's been coding lately\", \"what's happening with developers I follow\", \"daily GitHub digest\", \"followed users commit summary\". NOT for: searching specific repos, checking a single user's profile, GitHub issue/PR management."
 ---
 
 # GitHub Daily Digest

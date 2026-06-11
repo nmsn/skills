@@ -1,6 +1,6 @@
 ---
 name: issue-analyzer
-description: 获取 GitHub issues 列表，分析代码结构，评估修改难度，定位需修改的函数/文件 / Analyze GitHub issues, assess difficulty, locate code to modify. Triggers: 分析 issues、分析 issue、查看 issues、analyze issues、list issues
+description: "获取 GitHub issues 列表，分析代码结构，评估修改难度，定位需修改的函数/文件 / Analyze GitHub issues, assess difficulty, locate code to modify. Triggers: 分析 issues、分析 issue、查看 issues、analyze issues、list issues"
 ---
 
 # Issue Analyzer / Issue 分析器

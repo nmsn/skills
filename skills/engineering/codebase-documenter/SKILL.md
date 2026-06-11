@@ -1,6 +1,6 @@
 ---
 name: codebase-documenter
-description: 分析代码库结构并生成文档（Quick/Standard两种深度）/ Analyze codebase structure and generate documentation (Quick/Standard depth). Triggers: 分析项目结构、解释这个代码库、analyze codebase、explain this code
+description: "分析代码库结构并生成文档（Quick/Standard两种深度）/ Analyze codebase structure and generate documentation (Quick/Standard depth). Triggers: 分析项目结构、解释这个代码库、analyze codebase、explain this code"
 ---
 
 # Codebase Documenter / 代码库文档生成器
