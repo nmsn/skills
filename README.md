@@ -32,13 +32,29 @@ Creative exploration tools.
 
 ## Installation
 
-Run the install script — it symlinks every promoted skill into `~/.claude/skills/` (or `~/.agents/skills/` for Codex):
+### For other users — install via the standard skills CLI
+
+The repo ships a `.claude-plugin/plugin.json` that the `skills` CLI consumes. To install all promoted skills into Claude Code or Codex:
 
 ```bash
+npx skills add nmsn/skills
+```
+
+This downloads the repo, reads the plugin manifest, and links every promoted skill into the right place. No clone required.
+
+### For local development — clone and symlink
+
+If you want to read the code, modify a skill, or test changes locally, clone the repo and run the install script:
+
+```bash
+git clone https://github.com/nmsn/skills.git
+cd skills
 ./scripts/link-skills.sh
 ```
 
-The script is idempotent and self-reference-safe. Run `./scripts/list-skills.sh` to see which skills are available.
+The script symlinks each promoted skill into `~/.claude/skills/` (override with `CLAUDE_SKILLS_DIR=~/.agents/skills` for Codex). It is idempotent and self-reference-safe: editing a `SKILL.md` under `skills/<bucket>/<name>/` is picked up immediately, no reinstall needed.
+
+Run `./scripts/list-skills.sh` to see which skills are available.
 
 ## Project layout
 
