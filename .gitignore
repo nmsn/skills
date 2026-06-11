@@ -1,1 +1,16 @@
+# Tooling artifacts
 .worktrees/
+.playwright-mcp/
+.DS_Store
+
+# Node (used by some skill scripts)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp

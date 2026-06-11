@@ -1,0 +1,14 @@
+{
+  "name": "nmsn-skills",
+  "skills": [
+    "./skills/engineering/code-summarizer",
+    "./skills/engineering/codebase-documenter",
+    "./skills/engineering/git-commit-generator",
+    "./skills/productivity/follow-frontend",
+    "./skills/productivity/fork-issue-workflow",
+    "./skills/productivity/github-daily-digest",
+    "./skills/productivity/github-project-history",
+    "./skills/productivity/issue-analyzer",
+    "./skills/design/design-search"
+  ]
+}
